@@ -81,6 +81,7 @@ type ReactInfiniteComputedProps = {
 
   infiniteLoadBeginEdgeOffset?: number,
   onInfiniteLoad: () => any,
+  optionalHeader?: React.Element<*>,
   loadingSpinnerDelegate?: React.Element<*>,
 
   isInfiniteLoading?: boolean,
@@ -93,6 +94,8 @@ type ReactInfiniteComputedProps = {
 };
 
 type ReactInfiniteState = {
+  utils: ReactInfiniteUtilityFunctions,
+  computedProps: ReactInfiniteComputedProps,
   numberOfChildren: number,
   infiniteComputer: InfiniteComputer,
   isInfiniteLoading: boolean,
