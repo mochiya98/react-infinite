@@ -20,32 +20,34 @@ var INFINITE_SOURCE = './src/react-infinite.jsx';
 var buildFunction = browserifyCreator(false, envObject, INFINITE_SOURCE);
 
 gulp.task('build-bundle', buildFunction);
-gulp.task('cleanly-build-bundle', ['clean'], buildFunction);
 gulp.task(
   'watch-develop-bundle',
   browserifyCreator(true, { development: true }, INFINITE_SOURCE)
 );
 
+gulp.task('clean', function(cb) {
+  del.sync(['build', 'dist']);
+  cb();
+});
+gulp.task('cleanly-build-bundle', gulp.series('clean', buildFunction));
+
 // This task builds everything for release: the dist
 // folder is populated with react-infinite.js and
 // react-infinite.min.js, while the build folder is
 // provided with a copy of the source transpiled to ES5.
-gulp.task('release', ['cleanly-build-bundle'], function() {
+gulp.task('release', gulp.series('cleanly-build-bundle', function() {
   // Transpile CommonJS files to ES5 with React's tools.
-  gulp
+  return gulp
     .src(['./src/**/*.js', './src/**/*.jsx'])
     .pipe(babel())
     .pipe(gulp.dest('build'));
-});
+}));
 
-gulp.task('clean', function() {
-  return del(['build', 'dist']);
-});
 
 // This task is used to build the examples. It is used
 // in the development watch function as well.
 gulp.task('examples', function() {
-  gulp.src('./examples/*.jsx').pipe(babel()).pipe(gulp.dest('examples'));
+  return gulp.src('./examples/*.jsx').pipe(babel()).pipe(gulp.dest('examples'));
 });
 
 gulp.task('server', function() {
@@ -73,9 +75,9 @@ gulp.task('server', function() {
 
 // This task is used for development. When run, it sets up
 // a watch on the source files
-gulp.task('develop', ['watch-develop-bundle', 'server'], function() {
+gulp.task('develop', gulp.series('watch-develop-bundle', 'server', function() {
   gulp.watch('Gulpfile.js', ['examples', 'build-bundle']);
   gulp.watch('./examples/*.jsx', ['examples', 'build-bundle']);
-});
+}));
 
-gulp.task('default', ['release']);
+gulp.task('default', gulp.series('release'));

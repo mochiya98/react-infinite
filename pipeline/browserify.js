@@ -8,48 +8,57 @@ var sourcemaps = require('gulp-sourcemaps');
 var uglify = require('gulp-uglify');
 var gulp = require('gulp');
 var size = require('gulp-size');
+var merge = require('merge-stream');
 
 var envify = require('envify/custom');
 
 function transformBundle(root, envObject) {
   root = root.bundle();
+  var pipeline = [];
 
   if (envObject.development) {
-    root
-      .pipe(sourcestream('react-infinite.js'))
-      .pipe(buffer())
-      .pipe(sourcemaps.init())
-      .pipe(sourcemaps.write('.'))
-      .pipe(
-        size({
-          title: 'Development bundle'
-        })
-      )
-      .pipe(gulp.dest('dist'));
+    pipeline.push(
+      root
+        .pipe(sourcestream('react-infinite.js'))
+        .pipe(buffer())
+        .pipe(sourcemaps.init())
+        .pipe(sourcemaps.write('.'))
+        .pipe(
+          size({
+            title: 'Development bundle'
+          })
+        )
+        .pipe(gulp.dest('dist'))
+    );
   }
   if (envObject.production || envObject.release) {
-    root
-      .pipe(sourcestream('react-infinite.min.js'))
-      .pipe(buffer())
-      .pipe(uglify())
-      .pipe(
-        size({
-          title: 'Release minified bundle'
-        })
-      )
-      .pipe(gulp.dest('dist'));
+    pipeline.push(
+      root
+        .pipe(sourcestream('react-infinite.min.js'))
+        .pipe(buffer())
+        .pipe(uglify())
+        .pipe(
+          size({
+            title: 'Release minified bundle'
+          })
+        )
+        .pipe(gulp.dest('dist'))
+    );
   }
   if (envObject.release) {
-    root
-      .pipe(sourcestream('react-infinite.js'))
-      .pipe(buffer())
-      .pipe(
-        size({
-          title: 'Release unminified bundle'
-        })
-      )
-      .pipe(gulp.dest('dist'));
+    pipeline.push(
+      root
+        .pipe(sourcestream('react-infinite.js'))
+        .pipe(buffer())
+        .pipe(
+          size({
+            title: 'Release unminified bundle'
+          })
+        )
+        .pipe(gulp.dest('dist'))
+    );
   }
+  return merge(...pipeline);
 }
 
 module.exports = function(shouldWatch, envObject, files) {
@@ -97,6 +106,6 @@ module.exports = function(shouldWatch, envObject, files) {
       });
     }
 
-    transformBundle(root, envObject);
+    return transformBundle(root, envObject);
   };
 };
